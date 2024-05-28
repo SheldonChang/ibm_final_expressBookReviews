@@ -1,5 +1,7 @@
 const express = require('express');
-let books = require("./booksdb.js");
+let { getBooksByTitlePromise, getBooksByAuthorPromise,
+    getBooksByIsbnPromise, getBooksPromise, books }
+    = require("./booksdb.js");
 let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
 const public_users = express.Router();
@@ -75,5 +77,32 @@ public_users.get('/review/:isbn', function (req, res) {
         return res.status(404).json({ message: `Book with isbn ${req.params.isbn} not found!` });
     }
 });
+
+public_users.get('/books', async (req, res) => {
+    const _books = await getBooksPromise();
+    return res.status(200).json({ books: _books });
+})
+
+public_users.get('/books/isbn/:isbn', async (req, res) => {
+    const isbn = req.params.isbn;
+    getBooksByIsbnPromise(isbn)
+        .then((_book) => res.status(200).json({ book: _book }))
+        .catch((err) => res.status(404).json({ message: err }));
+})
+
+public_users.get('/books/author/:author', async (req, res) => {
+    const author = req.params.author;
+    getBooksByAuthorPromise(author)
+        .then((_books) => res.status(200).json({ book: _books }))
+        .catch((err) => res.status(404).json({ message: err }));
+})
+
+
+public_users.get('/books/title/:title', async (req, res) => {
+    const title = req.params.title;
+    getBooksByTitlePromise(title)
+        .then((_books) => res.status(200).json({ book: _books }))
+        .catch((err) => res.status(404).json({ message: err }));
+})
 
 module.exports.general = public_users;

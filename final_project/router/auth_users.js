@@ -52,8 +52,30 @@ regd_users.post("/login", (req, res) => {
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
-    //Write your code here
-    return res.status(300).json({ message: "Yet to be implemented" });
+    let isbn = req.params.isbn;
+    let book = books[isbn];
+    if (!book) {
+        return res.status(404).json({message: `Book with isbn: ${isbn} not found`})
+    }
+    let review = req.query.review;
+   
+    let username = req.session.authorization['username'];
+    book['reviews'] = {
+        ...book['reviews'],
+        [username]: review
+    }
+    return res.status(200).json({ message: "The review has been added / updated" });
+});
+
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+    let isbn = req.params.isbn;
+    let book = books[isbn];
+    if (!book) {
+        return res.status(404).json({message: `Book with isbn: ${isbn} not found`})
+    }
+    let username = req.session.authorization['username'];
+    delete book['reviews'][username]
+    return res.status(200).json({ message: `${username}'s review for the isbn: ${isbn} has been deleted`, "book": book });
 });
 
 module.exports.authenticated = regd_users;
